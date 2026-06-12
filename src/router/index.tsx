@@ -1,0 +1,28 @@
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import Login from "@/pages/Login";
+import EditorPage from "@/pages/Note";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Navigate to="/editor" replace />, // 根路径自动重定向到编辑器
+  },
+  {
+    path: "/login",
+    element: <Login />,
+  },
+  {
+    path: "/editor",
+    element: <EditorPage />,
+  },
+  {
+    path: "*",
+    element: (
+      <div style={{ textAlign: "center", marginTop: "100px" }}>
+        404 - 页面未找到
+      </div>
+    ),
+  },
+]);
+
+export default router;
