@@ -1,3 +1,5 @@
+/* 1. 引入 Streamdown 的核心样式 */
+@import "streamdown/styles.css";
 :root {
   --text: #6b6375;
   --text-h: #08060d;
@@ -54,7 +56,7 @@
   width: 1126px;
   max-width: 100%;
   margin: 0 auto;
-  text-align: center;
+  /* text-align: center; */
   border-inline: 1px solid var(--border);
   min-height: 100svh;
   display: flex;
@@ -108,4 +110,22 @@ code {
   line-height: 135%;
   padding: 4px 8px;
   background: var(--code-bg);
+}
+
+/* 定义省略号动画 */
+@keyframes ellipsis {
+  0% { content: ''; }
+  25% { content: '.'; }
+  50% { content: '..'; }
+  75% { content: '...'; }
+  100% { content: ''; }
+}
+
+/* 伪元素样式 */
+.loading-dots::after {
+  content: '';
+  display: inline-block;
+  width: 24px; /* 预留三个点的宽度，防止布局抖动 */
+  text-align: left;
+  animation: ellipsis 1.2s steps(4, end) infinite;
 }

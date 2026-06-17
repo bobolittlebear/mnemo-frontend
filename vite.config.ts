@@ -19,6 +19,17 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
       },
+      "/stream": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
+      // 其他需要代理的路径...
+      "/auth": {
+        target: "http://localhost:3000",
+        changeOrigin: true,
+        secure: false,
+      },
     },
   },
 });

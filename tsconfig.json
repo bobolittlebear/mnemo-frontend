@@ -25,7 +25,7 @@
       "@/*": ["./src/*"] // 【核心配置】告诉 TS 编译器 @/xxx 对应 ./src/xxx
     }
   },
-  "include": ["src", "vite.config.ts"]
+  "include": ["src", "vite.config.ts", "./typings.d.ts"]
 
 
 }

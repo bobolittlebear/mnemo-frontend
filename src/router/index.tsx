@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import Login from "@/pages/Login";
-import EditorPage from "@/pages/Note";
+import NoteEditor from "@/pages/NoteEditor";
 
 const router = createBrowserRouter([
   {
@@ -13,7 +13,7 @@ const router = createBrowserRouter([
   },
   {
     path: "/editor",
-    element: <EditorPage />,
+    element: <NoteEditor />,
   },
   {
     path: "*",
