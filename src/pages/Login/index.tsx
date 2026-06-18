@@ -1,52 +1,57 @@
-// src/pages/Login.tsx (伪代码)
-import { Form, Input, Button, Card, message } from "antd";
+import React, { useState } from "react";
 import request from "@/utils/request";
 import { useNavigate } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const Login = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-  const onFinish = async (values: any) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     try {
-      // 这里的 /auth/login 会被 Vite 代理到 http://localhost:3000/api/auth/login
-      const res = await request.post("/auth/login", values);
-
-      // 假设后端返回结构为 { code: 200, data: { token: '...' } }
+      const res = await request.post("/auth/login", { email, password });
       if (res.code === 200) {
         localStorage.setItem("token", res.data.token);
-        message.success("登录成功");
-        navigate("/editor"); // 跳转到编辑器页面
+        alert("登录成功");
+        navigate("/editor");
       }
-    } catch {
-      // 错误已在 request.ts 中统一处理
+    } catch (err) {
+      // request.ts 统一处理错误
     }
   };
 
   return (
-    <div
-      style={{ display: "flex", justifyContent: "center", marginTop: "100px" }}
-    >
-      <Card title="AI Note 登录" style={{ width: 400 }}>
-        <Form name="login" onFinish={onFinish}>
-          <Form.Item
-            name="email"
-            rules={[{ required: true, message: "请输入邮箱" }]}
-          >
-            <Input placeholder="Email" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: "请输入密码" }]}
-          >
-            <Input.Password placeholder="Password" />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" block>
+    <div className="flex justify-center mt-24">
+      <div className="w-96 bg-white rounded-lg shadow p-6">
+        <h2 className="text-lg font-medium mb-4">AI Note 登录</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm mb-1">邮箱</label>
+            <Input
+              value={email}
+              onChange={(e: any) => setEmail(e.target.value)}
+              placeholder="Email"
+            />
+          </div>
+          <div>
+            <label className="block text-sm mb-1">密码</label>
+            <Input
+              type="password"
+              value={password}
+              onChange={(e: any) => setPassword(e.target.value)}
+              placeholder="Password"
+            />
+          </div>
+          <div>
+            <Button type="submit" className="w-full">
               登录
             </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

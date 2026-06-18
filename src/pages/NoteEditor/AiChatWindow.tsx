@@ -1,9 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { streamChat, ChatMessage } from "@/utils/chatStream";
 import ChatMarkdown from "./ChatMarkDown";
-import { Input, Button, Space, Layout } from "antd";
-import { SendOutlined, StopOutlined } from "@ant-design/icons";
-import { Content } from "antd/es/layout/layout";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 const AIChatWindow: React.FC = () => {
   const [input, setInput] = useState("");
@@ -74,54 +73,40 @@ const AIChatWindow: React.FC = () => {
   };
 
   return (
-    <Layout
-      style={{
-        height: "100vh", // 1. 设置整体容器高度为视口高度
-        display: "flex",
-        flexDirection: "column", // 2. 核心：使用 Flex 纵向布局
-      }}
-    >
-      <Content
-        style={{
-          flex: 1, // 3. 核心：占据父容器除固定高度外的所有剩余空间
-          overflow: "auto", // 4. 防止内容过多时撑破布局，超出部分显示滚动条
-          padding: "24px",
-          backgroundColor: "#fff",
-        }}
-      >
+    // 1. 整体容器：改为 flex-col 纵向布局，锁定全屏高度，禁止整体滚动
+    <div className="flex flex-col h-screen w-full bg-background text-foreground overflow-hidden">
+      {/* 2. 聊天消息区域：占据剩余空间 (flex-1)，内容溢出时内部滚动 */}
+      <main className="flex-1 overflow-y-auto p-6 relative custom-scrollbar">
         {messages.map((msg, index) => {
           const isUser = msg.role === "user";
-          // 判断是否是正在生成中的 AI 消息
-          const isPendingAssistant = !isUser && msg.content === "" && isLoading;
+          const isPendingAssistant =
+            !isUser &&
+            msg.content === "" &&
+            isLoading &&
+            index === messages.length - 1; // 最后一条消息是正在生成的 AI 消息
 
           return (
             <div
               key={index}
-              style={{
-                display: "flex",
-                justifyContent: isUser ? "flex-end" : "flex-start",
-                marginBottom: 16,
-              }}
+              className={`flex mb-4 ${isUser ? "justify-end" : "justify-start"}`}
             >
               <div
-                style={{
-                  maxWidth: isUser ? "80%" : "90%", // 限制最大宽度，防止超长内容撑满屏幕
-                  padding: "12px 16px",
-                  borderRadius: 8,
-                  fontSize: 14,
-                  lineHeight: 1.6,
-                  backgroundColor: isUser ? "#e6f4ff" : "transparent", // 淡蓝色背景 (Antd 默认主题色淡色)
-                  color: isUser ? "#000" : "#333", // 用户消息文字颜色
-                }}
+                className={`
+                max-w-[100%] px-4 py-3 rounded-lg text-sm leading-relaxed shadow-sm
+                /* 用户消息样式：淡蓝背景 + 深色文字 */
+                ${
+                  isUser
+                    ? "bg-blue-50 text-slate-900 border border-blue-100"
+                    : "bg-muted/50 border border-border"
+                }
+              `}
               >
-                {/* 1. 占位状态：显示 Loading */}
                 {isPendingAssistant ? (
-                  <span className="loading-dots" style={{ color: "#999" }}>
-                    正在思考中
+                  <span className="text-muted-foreground animate-pulse">
+                    正在思考中...
                   </span>
-                ) : /* 2. 正常状态：渲染内容 */
-                isUser ? (
-                  msg.content
+                ) : isUser ? (
+                  <div className="whitespace-pre-wrap">{msg.content}</div>
                 ) : (
                   <ChatMarkdown content={msg.content} />
                 )}
@@ -129,42 +114,43 @@ const AIChatWindow: React.FC = () => {
             </div>
           );
         })}
+        {/* 自动滚动锚点 */}
         <div ref={messagesEndRef} />
-      </Content>
-      <div
-        style={{
-          height: "100px", // 5. 明确指定底部容器高度
-          width: "100%", // 6. 宽度自适应
-          backgroundColor: "#f0f2f5",
-          padding: "24px",
-          boxSizing: "border-box", // 7. 防止 padding 导致高度超出 100px
-        }}
-      >
-        <Space.Compact style={{ width: "100%" }}>
-          <Input
+      </main>
+
+      {/* 3. 底部输入区域：固定在下方，不随上方滚动 */}
+      <footer className="p-4 bg-card border-t border-border shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10">
+        <div className="flex gap-2 items-end max-w-4xl mx-auto">
+          <Textarea
             value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onPressEnter={handleSend}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setInput(e.target.value)
+            }
             placeholder="向 AI 提问关于这篇笔记的问题..."
+            className="min-h-[60px] resize-none flex-1 bg-background" // 稍微调低一点最小高度以适应横向布局
           />
+
+          {/* 按钮根据状态切换 */}
           {isLoading ? (
             <Button
-              type="primary"
-              danger
+              variant="destructive"
               onClick={handleStop}
-              icon={<StopOutlined />}
-            />
+              className="h-[60px] shrink-0 px-6"
+            >
+              停止
+            </Button>
           ) : (
             <Button
-              type="primary"
-              icon={<SendOutlined />}
               onClick={handleSend}
               disabled={!input.trim()}
-            />
+              className="h-[60px] shrink-0 px-6"
+            >
+              发送
+            </Button>
           )}
-        </Space.Compact>
-      </div>
-    </Layout>
+        </div>
+      </footer>
+    </div>
   );
 };
 

@@ -1,8 +1,6 @@
 import { useState } from "react";
-import { Row, Col, Input } from "antd";
 import AIChatWindow from "./AiChatWindow";
-
-const { TextArea } = Input;
+import { Textarea } from "@/components/ui/textarea";
 
 // type Message = {
 //   id: number;
@@ -14,35 +12,28 @@ const NoteEditor = () => {
   const [noteContent, setNoteContent] = useState(""); // 笔记内容状态
 
   return (
-    <div style={{ height: "100vh", padding: "20px" }}>
-      <Row gutter={16} style={{ height: "100%" }}>
+    <div className="h-screen p-5">
+      <div className="flex h-full gap-4">
         {/* 左侧：笔记编辑区 */}
-        <Col span={12}>
-          <TextArea
+        <div className="w-1/2">
+          <Textarea
             value={noteContent}
-            onChange={(e) => setNoteContent(e.target.value)}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              setNoteContent(e.target.value)
+            }
             placeholder="在这里记录你的灵感..."
-            style={{ height: "100%", resize: "none", fontSize: "16px" }}
-            autoSize={{ minRows: 20 }}
+            className="h-full w-full resize-none text-base"
           />
-        </Col>
+        </div>
 
         {/* 右侧：AI 会话窗口 */}
-        <Col
-          span={12}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            borderLeft: "1px solid #eee",
-            paddingLeft: "16px",
-          }}
-        >
-          {/* 消息列表区域 */}
-          <div style={{ flex: 1, overflowY: "auto", marginBottom: "16px" }}>
+        <div className="w-1/2 flex flex-col border-l border-gray-200 pl-4">
+          {/* <div className="flex-1 overflow-auto mb-4">
             <AIChatWindow />
-          </div>
-        </Col>
-      </Row>
+          </div> */}
+          <AIChatWindow />
+        </div>
+      </div>
     </div>
   );
 };
