@@ -30,11 +30,15 @@ const NoteEditor = () => {
       case "saved":
         return (
           <span className="text-green-500">
-            已保存于 {lastSavedTime?.toLocaleTimeString()}
+            已保存于 {lastSavedTime?.toLocaleString()}
           </span>
         );
       case "error":
-        return <span className="text-red-500">保存失败，请检查网络</span>;
+        return (
+          <span className="text-gray-400 font-small">
+            同步失败，请检查网络或稍后再试
+          </span>
+        );
       default:
         return null;
     }

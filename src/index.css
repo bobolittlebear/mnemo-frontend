@@ -121,7 +121,7 @@
 
 /* 让 ByteMD 编辑器撑满父容器 */
 .bytemd {
-  height: calc(100vh - 74px) !important;
+  height: calc(100vh - 106px) !important;
 }
 
 /* 确保编辑器内部的 CodeMirror 实例也撑满可用高度 */
