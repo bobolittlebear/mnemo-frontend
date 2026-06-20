@@ -1,5 +1,5 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-import Login from "@/pages/Login";
+// import Login from "@/pages/Login";
 import NoteEditor from "@/pages/NoteEditor";
 
 const router = createBrowserRouter([
@@ -7,12 +7,16 @@ const router = createBrowserRouter([
     path: "/",
     element: <Navigate to="/editor" replace />, // 根路径自动重定向到编辑器
   },
+  // {
+  //   path: "/login",
+  //   element: <Login />,
+  // },
   {
-    path: "/login",
-    element: <Login />,
+    path: "/note",
+    element: <NoteEditor />,
   },
   {
-    path: "/editor",
+    path: "/note/:id",
     element: <NoteEditor />,
   },
   {

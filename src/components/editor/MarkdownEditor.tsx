@@ -8,9 +8,14 @@ import "bytemd/dist/index.css";
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
+  renderSaveStatus: () => React.ReactNode; // 用于显示保存状态指示器的函数
 }
 
-const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
+const MarkdownEditor: React.FC<MarkdownEditorProps> = ({
+  value,
+  onChange,
+  renderSaveStatus,
+}) => {
   // 使用 useMemo 缓存插件实例，避免每次渲染都重新创建插件对象
   const plugins = useMemo(() => [gfm()], []);
 
@@ -23,6 +28,11 @@ const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ value, onChange }) => {
         onChange={onChange}
         placeholder="在这里记录你的灵感，或让 AI 帮你完善笔记..."
       />
+      {renderSaveStatus && (
+        <div className="p-2 border-t border-gray-200 bg-gray-50 text-sm">
+          {renderSaveStatus()}
+        </div>
+      )}
     </div>
   );
 };
