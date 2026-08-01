@@ -8,6 +8,7 @@ const AIChatWindow: React.FC = () => {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
 
   // 用于控制请求中断
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -38,10 +39,9 @@ const AIChatWindow: React.FC = () => {
     // 4. 调用流式接口
     await streamChat({
       messages: updatedHistory,
+      sessionId: currentSessionId ?? undefined,
       signal: controller.signal,
       onChunk: (chunk) => {
-        // 核心：将接收到的片段实时追加到最后一条 AI 消息中
-        // 🌟 核心修改：只要接收到第一个非空字符，立刻取消 Loading
         if (isLoading && chunk.trim().length > 0) {
           setIsLoading(false);
         }
@@ -53,6 +53,9 @@ const AIChatWindow: React.FC = () => {
           }
           return newMessages;
         });
+      },
+      onMeta: ({ sessionId }) => {
+        setCurrentSessionId(sessionId);
       },
       onComplete: () => {
         setIsLoading(false);

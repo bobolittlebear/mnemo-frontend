@@ -17,6 +17,9 @@ importers:
       '@fontsource-variable/geist':
         specifier: ^5.2.9
         version: 5.2.9
+      '@microsoft/fetch-event-source':
+        specifier: ^2.0.1
+        version: 2.0.1
       '@tailwindcss/typography':
         specifier: ^0.5.20
         version: 0.5.20(tailwindcss@3.4.17)
@@ -395,6 +398,9 @@ packages:
 
   '@mermaid-js/parser@1.1.1':
     resolution: {integrity: sha512-VuHdsYMK1bT6X2JbcAaWAhugTRvRBRyuZgd+c22swUeI9g/ntaxF7CY7dYarhZovofCbUNO0G7JesfmNtjYOCw==}
+
+  '@microsoft/fetch-event-source@2.0.1':
+    resolution: {integrity: sha512-W6CLUJ2eBMw3Rec70qrsEW0jOm/3twwJv21mrmj2yORiaVmVYGS4sSS5yUwvQc1ZlDLYGPnClVWmUUMagKNsfA==}
 
   '@modelcontextprotocol/sdk@1.29.0':
     resolution: {integrity: sha512-zo37mZA9hJWpULgkRpowewez1y6ML5GsXJPY8FI0tBBCd77HEvza4jDqRKOXgHNn867PVGCyTdzqpz0izu5ZjQ==}
@@ -4454,6 +4460,8 @@ snapshots:
   '@mermaid-js/parser@1.1.1':
     dependencies:
       '@chevrotain/types': 11.1.2
+
+  '@microsoft/fetch-event-source@2.0.1': {}
 
   '@modelcontextprotocol/sdk@1.29.0(zod@3.25.76)':
     dependencies:
