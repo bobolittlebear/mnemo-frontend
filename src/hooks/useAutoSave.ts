@@ -23,7 +23,7 @@ export function useAutoSave({
 
   const lastSavedContent = useRef(content);
   const abortControllerRef = useRef<AbortController | null>(null);
-  const retryCount = useRef(0); // 用于指数退避
+  const [retryCount, setRetryCount] = useState(0); // 用于指数退避
 
   // 本地存储兜底
   const saveToLocal = useCallback(
@@ -67,13 +67,13 @@ export function useAutoSave({
       lastSavedContent.current = md;
       setLastSavedTime(new Date());
       setStatus("saved");
-      retryCount.current = 0; // 重置重试计数
+      setRetryCount(0); // 重置重试计数
     } catch (err) {
       if ((err as Error).name !== "AbortError") {
         console.error("Auto-save failed:", err);
         setStatus("error");
         // 指数退避：失败后增加下次防抖时间
-        retryCount.current += 1;
+        setRetryCount((c) => c + 1);
       }
     } finally {
       if (!controller.signal.aborted && status !== "error") {
@@ -104,7 +104,7 @@ export function useAutoSave({
   return {
     status,
     lastSavedTime,
-    // @ts-check - 这里暴露 retryCount 以便外部根据需要调整 UI 或日志记录
-    retryCount: retryCount.current,
+    // 暴露 retryCount 以便外部根据需要调整 UI 或日志记录
+    retryCount,
   };
 }

@@ -12,13 +12,17 @@ const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const res = await request.post("/auth/login", { email, password });
+      // request.ts 响应拦截器直接返回 response.data，故此处类型为响应体
+      const res = (await request.post("/auth/login", {
+        email,
+        password,
+      })) as { code: number; data: { token: string } };
       if (res.code === 200) {
         localStorage.setItem("token", res.data.token);
         alert("登录成功");
         navigate("/editor");
       }
-    } catch (err) {
+    } catch {
       // request.ts 统一处理错误
     }
   };
@@ -32,7 +36,7 @@ const Login = () => {
             <label className="block text-sm mb-1">邮箱</label>
             <Input
               value={email}
-              onChange={(e: any) => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="Email"
             />
           </div>
@@ -41,7 +45,7 @@ const Login = () => {
             <Input
               type="password"
               value={password}
-              onChange={(e: any) => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Password"
             />
           </div>

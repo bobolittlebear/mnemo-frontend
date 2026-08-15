@@ -33,7 +33,9 @@ export async function streamChat(options: StreamChatOptions) {
   await fetchEventSource("/stream/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(sessionId ? { messages, sessionId } : { messages }),
+    body: JSON.stringify(
+      sessionId ? { messages, session_id: sessionId } : { messages },
+    ),
     signal,
     openWhenHidden: true,
 
