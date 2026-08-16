@@ -49,46 +49,6 @@
     --ring: 240 4.9% 83.9%;
   }
 
-  /* 在 Tailwind 的 @tailwind base; 之后添加 */
-  /* 针对 ByteMD 预览区恢复原生标签样式 */
-  .markdown-body h1,
-  .markdown-body h2,
-  .markdown-body h3,
-  .markdown-body h4,
-  .markdown-body h5,
-  .markdown-body h6 {
-    @apply font-bold mt-4 mb-2; /* 恢复标题的粗细与上下边距 */
-  }
-  
-  .markdown-body h1 { @apply text-3xl; }
-  .markdown-body h2 { @apply text-2xl; }
-  .markdown-body h3 { @apply text-xl; }
-
-  .markdown-body p {
-    @apply mb-4 leading-relaxed; /* 恢复段落的下边距和行高 */
-  }
-
-  .markdown-body ul,
-  .markdown-body ol {
-    @apply pl-6 mb-4 list-disc; /* 恢复列表的缩进、下边距和项目符号 */
-  }
-  
-  .markdown-body ol {
-    @apply list-decimal; /* 有序列表使用数字 */
-  }
-
-  .markdown-body pre {
-    @apply bg-gray-100 p-4 rounded-md overflow-x-auto mb-4; /* 恢复代码块的背景、内边距和圆角 */
-  }
-
-  .markdown-body code {
-    @apply bg-gray-100 px-1 py-0.5 rounded text-sm; /* 恢复行内代码的样式 */
-  }
-  
-  .markdown-body blockquote {
-    @apply border-l-4 border-gray-300 pl-4 italic text-gray-600 mb-4; /* 恢复引用块样式 */
-  }
-
 }
 
 /* 这一步负责重置浏览器默认样式（如 input 的默认边框） */
@@ -119,24 +79,27 @@
   animation: ellipsis 1.2s steps(4, end) infinite;
 }
 
-/* 让 ByteMD 编辑器撑满父容器 */
-.bytemd {
-  height: calc(100vh - 106px) !important;
-}
 
-/* 确保编辑器内部的 CodeMirror 实例也撑满可用高度 */
-.bytemd .CodeMirror {
-  height: 100% !important;
-}
 
-/* 确保预览区也能撑满高度（针对分屏或预览模式） */
-.bytemd-preview {
-  height: 100% !important;
-  overflow-y: auto;
-}
 
-/* 隐藏 ByteMD 右侧工具栏的第一个和第四个孩子节点 */
-.bytemd-toolbar .bytemd-toolbar-right > :nth-child(1),
-.bytemd-toolbar .bytemd-toolbar-right > :nth-child(4) {
-  display: none !important;
+/* globals.css */
+.prose {
+  /* 代码块样式 */
+  pre {
+    @apply bg-gray-900 text-gray-100 rounded-lg p-4 text-sm;
+  }
+  code::before, code::after { content: ''; } /* 去掉行内代码引号 */
+
+  /* 任务列表 */
+  ul[data-type="taskList"] { @apply list-none pl-0; }
+  ul[data-type="taskList"] li { @apply flex items-start gap-2; }
+  ul[data-type="taskList"] input[type="checkbox"] { @apply mt-1.5 accent-blue-600; }
+
+  /* 表格 */
+  table { @apply w-full border-collapse; }
+  th, td { @apply border border-gray-300 px-3 py-2 text-left; }
+  th { @apply bg-gray-50 font-semibold; }
+
+  /* 引用块 */
+  blockquote { @apply border-l-4 border-blue-400 pl-4 italic text-gray-600; }
 }

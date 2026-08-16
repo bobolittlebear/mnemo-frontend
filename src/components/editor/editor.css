@@ -1,0 +1,36 @@
+/* Tiptap 编辑器滚动条定制 */
+.tiptap-editor .overflow-y-auto {
+  /* Firefox */
+  scrollbar-width: 10px;
+  scrollbar-color: #d1d5db transparent;
+}
+
+/* Chrome / Safari / Edge */
+.tiptap-editor .overflow-y-auto::-webkit-scrollbar {
+  width: 10px;
+}
+
+.tiptap-editor .overflow-y-auto::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tiptap-editor .overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+  border-radius: 4px;
+}
+
+/* 滚动条不可见：默认隐藏，hover/滚动时显示 */
+.tiptap-editor .overflow-y-auto {
+  /* Firefox: auto-hide（仅新版 Firefox 支持） */
+  scrollbar-gutter: stable;
+}
+
+.tiptap-editor .overflow-y-auto::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.tiptap-editor .overflow-y-auto:hover::-webkit-scrollbar-thumb,
+.tiptap-editor .overflow-y-auto:active::-webkit-scrollbar-thumb {
+  background-color: #d1d5db;
+}
