@@ -20,7 +20,7 @@ const Login = () => {
       if (res.code === 200) {
         localStorage.setItem("token", res.data.token);
         alert("登录成功");
-        navigate("/editor");
+        navigate("/note");
       }
     } catch {
       // request.ts 统一处理错误

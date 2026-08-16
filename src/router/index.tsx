@@ -5,7 +5,7 @@ import NoteEditor from "@/pages/NoteEditor";
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Navigate to="/editor" replace />, // 根路径自动重定向到编辑器
+    element: <Navigate to="/note" replace />, // 根路径自动重定向到笔记编辑页
   },
   // {
   //   path: "/login",
