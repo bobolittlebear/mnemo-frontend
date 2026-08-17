@@ -34,3 +34,101 @@
 .tiptap-editor .overflow-y-auto:active::-webkit-scrollbar-thumb {
   background-color: #d1d5db;
 }
+
+/* ─── 编辑器内容样式（作用域限定 .tiptap-editor，避免污染全局）─── */
+
+/* 编辑区 focus 无默认蓝框（排版由 prose 提供） */
+.tiptap-editor .ProseMirror:focus {
+  outline: none;
+}
+
+/* 表格：显式补边框（prose 默认极淡） */
+.tiptap-editor .ProseMirror table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.tiptap-editor .ProseMirror th,
+.tiptap-editor .ProseMirror td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem 0.75rem;
+}
+
+.tiptap-editor .ProseMirror th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+/* 列表：Tailwind Preflight 会重置 ul/ol 的 list-style:none，
+   而 github-markdown-css 对顶层列表不显式声明 list-style-type（依赖浏览器默认），
+   故在编辑器内显式补回标记与缩进，避免无序/有序列表“无样式” */
+.tiptap-editor .ProseMirror ul {
+  list-style: disc;
+  padding-left: 1.6rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-editor .ProseMirror ol {
+  list-style: decimal;
+  padding-left: 1.6rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-editor .ProseMirror ul ul {
+  list-style: circle;
+}
+
+.tiptap-editor .ProseMirror ul ul ul {
+  list-style: square;
+}
+
+.tiptap-editor .ProseMirror ol ol {
+  list-style: lower-roman;
+}
+
+.tiptap-editor .ProseMirror ul ol,
+.tiptap-editor .ProseMirror ol ul {
+  list-style: circle;
+}
+
+/* 任务列表：checkbox 与文字同行
+   ⚠️ tiptap v3 的 TaskItem 用 addNodeView 自建 DOM，实时编辑器里的 <li>
+   不带 data-type="taskItem"（该属性只在 renderHTML 用于 getHTML/序列化），
+   故必须选 ul[data-type="taskList"] li，否则 flex 不生效、checkbox 独占一行 */
+.tiptap-editor .ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0.25rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap-editor .ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin: 0.25rem 0;
+}
+
+.tiptap-editor .ProseMirror ul[data-type="taskList"] li > label {
+  flex: 0 0 auto;
+  margin-top: 0.15rem;
+  user-select: none;
+}
+
+.tiptap-editor .ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.tiptap-editor .ProseMirror ul[data-type="taskList"] li input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  accent-color: hsl(var(--primary));
+}
+
+/* 引用：左侧边框明确（prose 已有，显式补全以防冲突） */
+.tiptap-editor .ProseMirror blockquote {
+  border-left: 4px solid hsl(var(--border));
+  padding-left: 1rem;
+  color: hsl(var(--muted-foreground));
+}

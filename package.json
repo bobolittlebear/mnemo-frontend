@@ -31,8 +31,6 @@
     "clsx": "^2.1.1",
     "github-markdown-css": "^5.9.0",
     "lucide-react": "^1.21.0",
-    "markdown-it": "^15.0.0",
-    "markdown-it-task-lists": "^2.1.1",
     "radix-ui": "^1.6.0",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",

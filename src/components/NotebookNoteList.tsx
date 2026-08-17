@@ -149,7 +149,9 @@ const NotebookNoteList = ({
           notebooks.map((nb) => {
             const expanded = isExpanded(nb.id);
             const selected = selectedNotebookId === nb.id;
-            const notebookNotes = notes.filter((n) => n.notebookId === nb.id);
+            const notebookNotes = notes.filter(
+              (n) => n != null && n.notebookId === nb.id,
+            );
 
             return (
               <div key={nb.id} className="flex flex-col">
@@ -184,6 +186,16 @@ const NotebookNoteList = ({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
+                    aria-label="新建笔记"
+                    onClick={() => onAddNote?.(nb.id)}
+                    className="shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  >
+                    <Plus />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
                     aria-label={`删除 ${nb.title}`}
                     onClick={() => setDeleteTarget(nb)}
                     className="shrink-0 text-muted-foreground opacity-0 transition-opacity hover:text-destructive focus-visible:opacity-100 group-hover:opacity-100"
@@ -192,21 +204,7 @@ const NotebookNoteList = ({
                   </Button>
                 </div>
 
-                {/* 展开区：新建笔记入口 + 该笔记本下的笔记列表 */}
-                {expanded && (
-                  <div className="shrink-0 px-2 pt-0.5">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-start text-muted-foreground"
-                      onClick={() => onAddNote?.(nb.id)}
-                    >
-                      <Plus />
-                      新建笔记
-                    </Button>
-                  </div>
-                )}
+                {/* 展开区：该笔记本下的笔记列表（新建笔记入口已移入笔记本行内） */}
                 {expanded &&
                   notebookNotes.map((note) => {
                     const noteSelected = selectedNoteId === note.id;

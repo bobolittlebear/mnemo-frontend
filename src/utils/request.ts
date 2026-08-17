@@ -27,9 +27,26 @@ request.interceptors.request.use(
 // 2. 响应拦截器：处理全局错误
 request.interceptors.response.use(
   (response: AxiosResponse) => {
-    // 如果后端返回的数据结构统一是 { code, data, message }
-    // 可以在这里做一层解构，方便组件直接使用 data
-    return response.data;
+    const data = response.data;
+    // 后端统一信封 { success, data, message }：逻辑失败（success:false，如校验/鉴权不通过）
+    // 仍走 HTTP 200，必须在此按错误抛出，否则调用方 try/catch 捕获不到，
+    // 会静默拿到 data:null 并推进 state，导致渲染时 `null.xxx` 白屏。
+    // 仅当响应体是带 success 字段的对象才判定，非信封结构原样返回。
+    if (
+      data &&
+      typeof data === "object" &&
+      "success" in data &&
+      data.success === false
+    ) {
+      return Promise.reject(
+        new Error(
+          typeof data.message === "string" && data.message
+            ? data.message
+            : "请求失败",
+        ),
+      );
+    }
+    return data;
   },
   (error) => {
     // 处理 401 未授权

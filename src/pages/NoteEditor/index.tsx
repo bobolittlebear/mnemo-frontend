@@ -4,11 +4,7 @@ import AIChatWindow from "./AiChatWindow";
 import NotebookNoteList from "@/components/NotebookNoteList";
 import NoteEditorPane from "@/components/NoteEditorPane";
 import { getNotes, createNote, deleteNote, getNoteById } from "@/api/note";
-import {
-  getNotebooks,
-  createNotebook,
-  deleteNotebook,
-} from "@/api/notebook";
+import { getNotebooks, createNotebook, deleteNotebook } from "@/api/notebook";
 import type { Notebook, Note } from "@/api/notebook";
 
 const NoteEditor = () => {
@@ -22,10 +18,14 @@ const NoteEditor = () => {
     null,
   );
   const [isLoadingNotebooks, setIsLoadingNotebooks] = useState(false);
-  // 当前笔记本下的笔记列表
-  const [notes, setNotes] = useState<Note[]>([]);
-  // 仅应用最新一次笔记拉取的结果，防止快速切换笔记本时旧响应覆盖新响应
-  const notesRequestIdRef = useRef<string | null>(null);
+  // 各笔记本的笔记列表：按 notebookId 分桶，支持多笔记本同时展开且各自独立显示
+  const [notesByNotebook, setNotesByNotebook] = useState<
+    Record<string, Note[]>
+  >({});
+  // 已加载过笔记的笔记本集合，避免重复请求
+  const loadedNotebooksRef = useRef<Set<string>>(new Set());
+  // 受控展开集合：数组记录多个笔记本，天然非互斥
+  const [expandedIds, setExpandedIds] = useState<string[]>([]);
 
   // 挂载时拉取笔记本列表；cleanup abort 防止卸载后 setState（异步 effect 内 setState 合法）
   useEffect(() => {
@@ -85,30 +85,40 @@ const NoteEditor = () => {
     return () => controller.abort();
   }, [routeNoteId]);
 
-  // 选中「当前笔记本」：切换选中并拉取该笔记本的笔记
-  // getNotes 未暴露 signal，改用请求 id 守卫：仅应用最新一次请求的结果
-  const handleSelectNotebook = async (nb: Notebook) => {
+  // 选中「当前笔记本」：仅切换高亮；笔记加载与展开交由 handleToggleExpand 处理
+  const handleSelectNotebook = (nb: Notebook) => {
     setSelectedNotebookId(nb.id);
-    notesRequestIdRef.current = nb.id;
-    try {
-      const res = await getNotes({ notebookId: nb.id });
-      if (notesRequestIdRef.current === nb.id) {
-        setNotes(res.data);
-      }
-    } catch (error) {
-      if (notesRequestIdRef.current === nb.id) {
-        console.error("加载笔记列表失败", error);
-      }
+  };
+
+  // 切换笔记本展开：非互斥（数组记录）；首次展开时拉取该笔记本笔记并存入分桶
+  const handleToggleExpand = (notebookId: string) => {
+    setExpandedIds((prev) =>
+      prev.includes(notebookId)
+        ? prev.filter((id) => id !== notebookId)
+        : [...prev, notebookId],
+    );
+    if (!loadedNotebooksRef.current.has(notebookId)) {
+      loadedNotebooksRef.current.add(notebookId);
+      getNotes({ notebookId })
+        .then((res) => {
+          setNotesByNotebook((prev) => ({ ...prev, [notebookId]: res.data }));
+        })
+        .catch((error) => {
+          loadedNotebooksRef.current.delete(notebookId);
+          console.error("加载笔记列表失败", error);
+        });
     }
   };
 
-  // 新建笔记本：成功后头部插入并设为当前（选中即展开）
+  // 新建笔记本：成功后头部插入并设为当前，默认展开（空列表）
   const handleCreateNotebook = async (title: string) => {
     try {
       const res = await createNotebook(title);
       const newNotebook = res.data;
       setNotebooks((prev) => [newNotebook, ...prev]);
       setSelectedNotebookId(newNotebook.id);
+      setExpandedIds((prev) => [...prev, newNotebook.id]);
+      setNotesByNotebook((prev) => ({ ...prev, [newNotebook.id]: [] }));
     } catch (error) {
       console.error("创建笔记本失败", error);
     }
@@ -125,23 +135,41 @@ const NoteEditor = () => {
     }
   };
 
-  // 新建笔记：直接创建空笔记并入列，随后跳转进入编辑态（编辑区渲染归步骤 6）
+  // 新建笔记：直接创建空笔记并入对应笔记本分桶，随后跳转进入编辑态
   const handleCreateNote = async (notebookId: string) => {
     try {
-      const res = await createNote({ title: "", content: "", notebookId });
+      const res = await createNote({
+        title: "未命名笔记",
+        content: "",
+        notebookId,
+      });
       const newNote = res.data;
-      setNotes((prev) => [newNote, ...prev]);
+      setNotesByNotebook((prev) => ({
+        ...prev,
+        [notebookId]: [newNote, ...(prev[notebookId] ?? [])],
+      }));
+      // 确保该笔记本处于展开态，新建笔记立即可见
+      setExpandedIds((prev) =>
+        prev.includes(notebookId) ? prev : [...prev, notebookId],
+      );
       navigate(`/note/${newNote.id}`);
     } catch (error) {
       console.error("创建笔记失败", error);
     }
   };
 
-  // 删除笔记：成功后移除；若删除的是当前编辑笔记则回退到 /note 清空编辑区
+  // 删除笔记：从对应笔记本分桶中移除（按 noteId 扫描，无需预先知道 notebookId）；
+  // 若删除的是当前编辑笔记则回退到 /note 清空编辑区
   const handleDeleteNote = async (noteId: string) => {
     try {
       await deleteNote(noteId);
-      setNotes((prev) => prev.filter((note) => note.id !== noteId));
+      setNotesByNotebook((prev) => {
+        const next = { ...prev };
+        for (const id of Object.keys(next)) {
+          next[id] = next[id].filter((note) => note.id !== noteId);
+        }
+        return next;
+      });
       if (routeNoteId === noteId) {
         navigate("/note");
       }
@@ -161,9 +189,11 @@ const NoteEditor = () => {
       <aside className="w-64 shrink-0 border-r border-border">
         <NotebookNoteList
           notebooks={notebooks}
-          notes={notes}
+          notes={Object.values(notesByNotebook).flat()}
           selectedNoteId={selectedNoteId}
           onSelectNote={handleSelectNote}
+          expandedIds={expandedIds}
+          onToggleExpand={handleToggleExpand}
           selectedNotebookId={selectedNotebookId}
           isLoadingNotebooks={isLoadingNotebooks}
           onSelectNotebook={handleSelectNotebook}

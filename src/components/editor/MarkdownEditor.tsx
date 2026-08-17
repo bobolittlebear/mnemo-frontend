@@ -1,4 +1,4 @@
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
@@ -6,13 +6,11 @@ import TableHeader from "@tiptap/extension-table-header";
 import TableCell from "@tiptap/extension-table-cell";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import BulletList from "@tiptap/extension-bullet-list";
-import ListItem from "@tiptap/extension-list-item";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
-import { useRef, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import "github-markdown-css/github-markdown-light.css";
 import "./editor.css";
-import { mdToHtml } from "./markdown-parser";
+import EditorToolbar from "./EditorToolbar";
 
 interface MarkdownEditorProps {
   value: string;
@@ -31,16 +29,17 @@ const MarkdownEditor = ({
   onChange,
   renderSaveStatus,
 }: MarkdownEditorProps) => {
-  const editorRef = useRef<Editor | null>(null);
-
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
-        // 如果 StarterKit 已包含 bulletList/listItem，可以不重复添加
-        // 但如果解析有问题，显式添加更安全
+        link: {
+          openOnClick: true,
+          HTMLAttributes: {
+            target: "_blank",
+            rel: "noopener noreferrer",
+          },
+        },
       }),
-      BulletList,
-      ListItem,
       TaskList,
       TaskItem.configure({ nested: true }),
       Table.configure({ resizable: true }),
@@ -59,10 +58,10 @@ const MarkdownEditor = ({
         transformCopiedText: false,
       }),
     ],
-    content: mdToHtml(value),
+    content: value,
     editorProps: {
       attributes: {
-        class: "prose max-w-none focus:outline-none min-h-[200px] p-4",
+        class: "focus:outline-none min-h-[200px]",
       },
     },
     onUpdate: ({ editor }) => {
@@ -72,19 +71,14 @@ const MarkdownEditor = ({
         editor.storage as unknown as { markdown: MarkdownStorage }
       ).markdown;
       const md = markdownStorage.getMarkdown();
-      console.log(md);
       onChange(md);
-    },
-    onCreate: ({ editor }) => {
-      editorRef.current = editor;
-    },
-    onDestroy: () => {
-      editorRef.current = null;
     },
   });
 
   return (
     <div className="tiptap-editor w-full h-full border rounded-md overflow-hidden bg-background flex flex-col">
+      {/* 工具栏：shrink-0 固定不随内容滚动 */}
+      <EditorToolbar editor={editor} />
       {/* ⬇️ 编辑区域：flex-1 占满剩余空间，overflow-y-auto 出滚动条 */}
       <div className="flex-1 overflow-y-auto">
         <EditorContent
