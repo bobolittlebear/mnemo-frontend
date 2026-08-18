@@ -132,3 +132,22 @@
   padding-left: 1rem;
   color: hsl(var(--muted-foreground));
 }
+
+/* 代码块容器兜底：防 Tailwind Preflight 清空 pre/code 背景与字体，
+   与 github-markdown-css 互补。token 着色（.hljs-keyword/.hljs-string 等）
+   由 highlight.js/styles/github.css 负责，此处不重复定义。 */
+.tiptap-editor .ProseMirror pre {
+  background: hsl(var(--muted));
+  border-radius: 6px;
+  padding: 1rem;
+  overflow-x: auto;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+.tiptap-editor .ProseMirror pre code {
+  background: transparent;
+  padding: 0;
+}

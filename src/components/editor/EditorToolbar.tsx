@@ -1,6 +1,7 @@
 import type { Editor } from "@tiptap/react";
 import {
   Bold,
+  Code2,
   Heading1,
   Heading2,
   Heading3,
@@ -190,6 +191,13 @@ const EditorToolbar = ({ editor }: EditorToolbarProps) => {
             .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
             .run()
         }
+      />
+      <ToolbarButton
+        label="代码块"
+        icon={Code2}
+        active={editor?.isActive("codeBlock") ?? false}
+        disabled={disabled}
+        onClick={() => editor?.chain().focus().toggleCodeBlock().run()}
       />
       <ToolbarButton
         label={linkActive ? "解除链接" : "插入链接"}

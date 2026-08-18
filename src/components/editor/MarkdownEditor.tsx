@@ -1,5 +1,7 @@
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
+import { createLowlight, common } from "lowlight";
 import { Table } from "@tiptap/extension-table";
 import TableRow from "@tiptap/extension-table-row";
 import TableHeader from "@tiptap/extension-table-header";
@@ -9,8 +11,15 @@ import TaskItem from "@tiptap/extension-task-item";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
 import { type ReactNode } from "react";
 import "github-markdown-css/github-markdown-light.css";
+// 浅色主题 token 着色（.hljs-* 类），与 github-markdown-light.css 风格统一；
+// 后续若做暗色编辑器，仅需改为 "highlight.js/styles/github-dark.css"。
+import "highlight.js/styles/github.css";
 import "./editor.css";
 import EditorToolbar from "./EditorToolbar";
+
+// lowlight 单例放在组件外（模块级），避免 useEditor 每次渲染重建实例。
+// 代码块语言由 tiptap-markdown 解析 ```lang 时自动写入节点属性，lowlight 据此高亮。
+const lowlight = createLowlight(common);
 
 interface MarkdownEditorProps {
   value: string;
@@ -39,7 +48,11 @@ const MarkdownEditor = ({
             rel: "noopener noreferrer",
           },
         },
+        // 禁用内置 codeBlock，交由低层的 CodeBlockLowlight（支持语法高亮）注册，
+        // 避免两个同名扩展重复注册冲突。
+        codeBlock: false,
       }),
+      CodeBlockLowlight.configure({ lowlight }),
       TaskList,
       TaskItem.configure({ nested: true }),
       Table.configure({ resizable: true }),
@@ -54,7 +67,7 @@ const MarkdownEditor = ({
         bulletListMarker: "-",
         linkify: false,
         // "breaks": false,
-        transformPastedText: false,
+        transformPastedText: true,
         transformCopiedText: false,
       }),
     ],

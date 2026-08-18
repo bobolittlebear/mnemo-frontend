@@ -16,12 +16,13 @@ export function useAutoSave({
   noteId,
   content,
   title,
-  delay = 1500,
+  delay = 5000,
 }: UseAutoSaveProps) {
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
 
   const lastSavedContent = useRef(content);
+  const lastSavedTitle = useRef(title);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [retryCount, setRetryCount] = useState(0); // 用于指数退避
 
@@ -42,7 +43,8 @@ export function useAutoSave({
 
   const save = useDebouncedCallback(async (md: string, t: string) => {
     // 边界：内容未实质性变化或为空时跳过
-    if (md === lastSavedContent.current || !md.trim()) {
+    // 内容与标题都未变化时才跳过；允许「仅改标题（即使内容为空）」也触发保存
+    if (md === lastSavedContent.current && t === lastSavedTitle.current) {
       setStatus("idle");
       return;
     }
@@ -65,6 +67,7 @@ export function useAutoSave({
 
       // 保存成功，更新状态
       lastSavedContent.current = md;
+      lastSavedTitle.current = t;
       setLastSavedTime(new Date());
       setStatus("saved");
       setRetryCount(0); // 重置重试计数

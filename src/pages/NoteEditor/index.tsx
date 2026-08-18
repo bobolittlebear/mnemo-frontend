@@ -183,6 +183,21 @@ const NoteEditor = () => {
     navigate(`/note/${note.id}`);
   };
 
+  // 标题实时回写：更新所有分桶中匹配 noteId 的标题（驱动左侧列表跟随），
+  // 并同步当前编辑笔记详情，避免切回时用旧的 initialTitle
+  const handleUpdateNoteTitle = (id: string, newTitle: string) => {
+    setNotesByNotebook((prev) => {
+      const next = { ...prev };
+      for (const nbId of Object.keys(next)) {
+        next[nbId] = next[nbId].map((n) =>
+          n.id === id ? { ...n, title: newTitle } : n,
+        );
+      }
+      return next;
+    });
+    setNote((prev) => (prev && prev.id === id ? { ...prev, title: newTitle } : prev));
+  };
+
   return (
     <div className="flex h-screen w-full overflow-hidden bg-background text-foreground">
       {/* 左侧：笔记列表侧边栏 */}
@@ -222,6 +237,7 @@ const NoteEditor = () => {
             noteId={note.id}
             initialTitle={note.title}
             initialContent={note.content}
+            onTitleChange={handleUpdateNoteTitle}
           />
         )}
       </main>

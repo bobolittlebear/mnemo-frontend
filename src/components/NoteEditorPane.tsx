@@ -24,6 +24,7 @@ type NoteEditorPaneProps = {
   noteId: string;
   initialTitle: string;
   initialContent: string;
+  onTitleChange?: (noteId: string, title: string) => void;
 };
 
 /**
@@ -35,6 +36,7 @@ const NoteEditorPane = ({
   noteId,
   initialTitle,
   initialContent,
+  onTitleChange,
 }: NoteEditorPaneProps) => {
   const [title, setTitle] = useState(initialTitle);
   const [content, setContent] = useState(initialContent);
@@ -46,7 +48,10 @@ const NoteEditorPane = ({
       <div className="h-12 shrink-0 flex items-center px-4 border-b border-border">
         <Input
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={(e) => {
+            setTitle(e.target.value);
+            onTitleChange?.(noteId, e.target.value);
+          }}
           placeholder="无标题"
         />
       </div>
