@@ -20,6 +20,13 @@ import {
   Unlink,
   type LucideIcon,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface EditorToolbarProps {
   editor: Editor | null;
@@ -67,6 +74,14 @@ const ToolbarButton = ({
  */
 const EditorToolbar = ({ editor }: EditorToolbarProps) => {
   const disabled = !editor;
+  // 多重判断：光标落在表格任意位置（表格/行/单元格/表头）都视为“在表格内”，
+  // 用于启用增删行列菜单项。配合 shouldRerenderOnTransaction 实时更新。
+  const inTable =
+    !!editor &&
+    (editor.isActive("table") ||
+      editor.isActive("tableRow") ||
+      editor.isActive("tableCell") ||
+      editor.isActive("tableHeader"));
   const linkActive = editor?.isActive("link") ?? false;
 
   const handleLinkClick = () => {
@@ -180,18 +195,99 @@ const EditorToolbar = ({ editor }: EditorToolbarProps) => {
         disabled={disabled}
         onClick={() => editor?.chain().focus().setHorizontalRule().run()}
       />
-      <ToolbarButton
-        label="插入表格"
-        icon={Table}
-        disabled={disabled}
-        onClick={() =>
-          editor
-            ?.chain()
-            .focus()
-            .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-            .run()
-        }
-      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            type="button"
+            title="表格"
+            aria-label="表格"
+            disabled={disabled}
+            className="flex items-center justify-center h-8 min-w-8 px-2 rounded-sm text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:opacity-40 disabled:pointer-events-none"
+          >
+            <Table className="h-4 w-4" />
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent>
+          <DropdownMenuItem
+            disabled={inTable}
+            onSelect={() =>
+              editor
+                ?.chain()
+                .focus()
+                .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+                .run()
+            }
+          >
+            插入表格
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().addRowBefore().run();
+            }}
+          >
+            在上方插入行
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().addRowAfter().run();
+            }}
+          >
+            在下方插入行
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().deleteRow().run();
+            }}
+          >
+            删除行
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().addColumnBefore().run();
+            }}
+          >
+            在左侧插入列
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().addColumnAfter().run();
+            }}
+          >
+            在右侧插入列
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().deleteColumn().run();
+            }}
+          >
+            删除列
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={!inTable}
+            onSelect={(e) => {
+              e.preventDefault();
+              editor?.chain().focus().deleteTable().run();
+            }}
+          >
+            删除表格
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
       <ToolbarButton
         label="代码块"
         icon={Code2}

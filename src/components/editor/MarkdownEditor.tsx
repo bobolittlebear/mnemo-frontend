@@ -21,6 +21,51 @@ import EditorToolbar from "./EditorToolbar";
 // 代码块语言由 tiptap-markdown 解析 ```lang 时自动写入节点属性，lowlight 据此高亮。
 const lowlight = createLowlight(common);
 
+// extensions / editorProps 提到模块级，保持引用稳定：
+// 若每次 render 重建数组/对象，useEditor 会收到新 options 并触发 setOptions 反复重配置编辑器，
+// 导致表格等结构重新挂载、视觉“跳动”。引用稳定后该问题消失。
+const extensions = [
+  StarterKit.configure({
+    link: {
+      openOnClick: true,
+      HTMLAttributes: {
+        target: "_blank",
+        rel: "noopener noreferrer",
+      },
+    },
+    // 禁用内置 codeBlock，交由低层的 CodeBlockLowlight（支持语法高亮）注册，
+    // 避免两个同名扩展重复注册冲突。
+    codeBlock: false,
+  }),
+  CodeBlockLowlight.configure({ lowlight }),
+  TaskList,
+  TaskItem.configure({ nested: true }),
+  // resizable 关掉：列宽拖拽手柄（columnResizing）是 hover 列边界时行高跳动的元凶——
+  // 本项目未引入 tiptap 官方 table 样式（.column-resize-handle 绝对定位缺失会撑高行）。
+  // 增/删行/列命令不依赖 resizable，关闭不影响核心功能。
+  Table.configure({ resizable: false }),
+  TableRow,
+  TableHeader,
+  TableCell,
+  Markdown.configure({
+    html: true,
+    breaks: true,
+    tightLists: true,
+    tightListClass: "tight",
+    bulletListMarker: "-",
+    linkify: false,
+    // "breaks": false,
+    transformPastedText: true,
+    transformCopiedText: false,
+  }),
+];
+
+const editorProps = {
+  attributes: {
+    class: "focus:outline-none min-h-[200px]",
+  },
+};
+
 interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
@@ -39,44 +84,13 @@ const MarkdownEditor = ({
   renderSaveStatus,
 }: MarkdownEditorProps) => {
   const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        link: {
-          openOnClick: true,
-          HTMLAttributes: {
-            target: "_blank",
-            rel: "noopener noreferrer",
-          },
-        },
-        // 禁用内置 codeBlock，交由低层的 CodeBlockLowlight（支持语法高亮）注册，
-        // 避免两个同名扩展重复注册冲突。
-        codeBlock: false,
-      }),
-      CodeBlockLowlight.configure({ lowlight }),
-      TaskList,
-      TaskItem.configure({ nested: true }),
-      Table.configure({ resizable: true }),
-      TableRow,
-      TableHeader,
-      TableCell,
-      Markdown.configure({
-        html: true,
-        breaks: true,
-        tightLists: true,
-        tightListClass: "tight",
-        bulletListMarker: "-",
-        linkify: false,
-        // "breaks": false,
-        transformPastedText: true,
-        transformCopiedText: false,
-      }),
-    ],
+    // extensions / editorProps 为模块级稳定引用（见文件顶部），避免反复重建编辑器
+    extensions,
     content: value,
-    editorProps: {
-      attributes: {
-        class: "focus:outline-none min-h-[200px]",
-      },
-    },
+    editorProps,
+    // 关键：选区/内容变化时触发组件重渲染，工具栏 isActive / inTable 才能实时更新
+    // （否则光标移入表格时下拉菜单的增删行项永远 disabled）。
+    shouldRerenderOnTransaction: true,
     onUpdate: ({ editor }) => {
       // tiptap-markdown 运行时在 editor.storage.markdown 挂载 getMarkdown，
       // 但其类型未扩充 tiptap 的 Storage，这里按 MarkdownStorage 窄化取值。

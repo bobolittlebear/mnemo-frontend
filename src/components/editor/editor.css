@@ -42,10 +42,23 @@
   outline: none;
 }
 
-/* 表格：显式补边框（prose 默认极淡） */
+/* 表格：显式补边框（prose 默认极淡）
+   ⚠️ 必须覆盖 github-markdown-css 的 .markdown-body table { display:block }：
+   编辑器内表格是 ProseMirror 的 contenteditable 表格，需标准 display:table 才能正确
+   计算光标位置与选区，否则会出现「点不进 cell」和「表格反复重排跳动」。
+   table-layout:fixed 让列宽稳定、配合 resizable 拖拽列宽。 */
 .tiptap-editor .ProseMirror table {
+  display: table;
+  table-layout: fixed;
   border-collapse: collapse;
   width: 100%;
+  margin: 0;
+}
+
+/* TableView 会把 <table> 包进 .tableWrapper 的 div：让其横向滚动，
+   避免宽表撑破编辑区，也使 table 的 width:100% 生效稳定 */
+.tiptap-editor .ProseMirror .tableWrapper {
+  overflow-x: auto;
 }
 
 .tiptap-editor .ProseMirror th,
