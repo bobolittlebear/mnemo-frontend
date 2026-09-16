@@ -1,6 +1,7 @@
 import type { Editor } from "@tiptap/react";
 import {
   Bold,
+  Code,
   Code2,
   Heading1,
   Heading2,
@@ -288,6 +289,15 @@ const EditorToolbar = ({ editor }: EditorToolbarProps) => {
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
+      {/* 行内代码（`abc`）与下方代码块（``` 多行）是两套独立命令：
+          toggleCode 作用于 code mark，toggleCodeBlock 作用于 codeBlock 节点 */}
+      <ToolbarButton
+        label="行内代码"
+        icon={Code}
+        active={editor?.isActive("code") ?? false}
+        disabled={disabled}
+        onClick={() => editor?.chain().focus().toggleCode().run()}
+      />
       <ToolbarButton
         label="代码块"
         icon={Code2}

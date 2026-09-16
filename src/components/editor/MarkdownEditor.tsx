@@ -16,6 +16,7 @@ import "github-markdown-css/github-markdown-light.css";
 import "highlight.js/styles/github.css";
 import "./editor.css";
 import EditorToolbar from "./EditorToolbar";
+import { InlineCodeIme } from "./extensions/inline-code-ime";
 
 // lowlight 单例放在组件外（模块级），避免 useEditor 每次渲染重建实例。
 // 代码块语言由 tiptap-markdown 解析 ```lang 时自动写入节点属性，lowlight 据此高亮。
@@ -58,6 +59,9 @@ const extensions = [
     transformPastedText: true,
     transformCopiedText: false,
   }),
+  // 排在最后：让 StarterKit code mark 的 inputRule（英文输入法）先跑完，
+  // 本扩展再兜底处理 IME 下残留的裸反引号。详见该文件顶部注释。
+  InlineCodeIme,
 ];
 
 const editorProps = {
