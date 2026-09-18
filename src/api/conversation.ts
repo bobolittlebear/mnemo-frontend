@@ -16,11 +16,32 @@ export type Session = {
   lastActiveAt: string;
 };
 
-export type ChatHistoryMessage = ChatMessage & {
-  id: string;
-  timestamp: string;
-  msgId: string;
-  traceId: string;
+/**
+ * 历史消息角色：比传输层 ChatMessage 多一档 'tool'——写模式下工具轮会落库为
+ * role:'tool' 的内部消息（后端 ChatMessage 枚举含 'tool'）。此处单独声明而不放宽
+ * ChatMessage，是为了让「请求体消息」保持窄类型：写域字段与内部轮一律不得外发。
+ */
+export type HistoryRole = "user" | "assistant" | "system" | "tool";
+
+/**
+ * 历史消息：在 ChatMessage 之外携带后端落库的写域字段（设计 §8.2 回放折叠所需）。
+ * 字段全部可选——同一份类型也要能描述前端 live 新建的消息（那些只有 role/content/mode）。
+ */
+export type ChatHistoryMessage = Omit<ChatMessage, "role"> & {
+  role: HistoryRole;
+  id?: string;
+  timestamp?: string;
+  msgId?: string;
+  traceId?: string;
+  mode?: "chat" | "write";
+  runId?: string | null;
+  noteId?: string | null;
+  /** assistant 内部轮携带的工具调用（工具名在 name，不是 tool） */
+  toolCalls?: Array<{ id?: string; name?: string; arguments?: unknown }> | null;
+  /** role:'tool' 消息回指它执行的是哪次调用 */
+  toolCallId?: string | null;
+  /** 工具执行回执：status 为 applied / failed / cancelled */
+  result?: { status?: string; error?: string; titleAfter?: string } | null;
 };
 
 /**获取会话列表 */

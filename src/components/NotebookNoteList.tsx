@@ -1,4 +1,5 @@
 import { useState } from "react";
+import type { ReactNode } from "react";
 import {
   ChevronDown,
   ChevronRight,
@@ -48,6 +49,8 @@ export type NotebookNoteListProps = {
   onDeleteNote?: (noteId: string) => void;
   /** 列表加载中占位 */
   isLoadingNotebooks?: boolean;
+  /** 头部右侧插槽（如侧边栏收起按钮）；不传则头部只有「新建笔记本」 */
+  topRightSlot?: ReactNode;
 };
 
 const NotebookNoteList = ({
@@ -64,6 +67,7 @@ const NotebookNoteList = ({
   onAddNote,
   onDeleteNote,
   isLoadingNotebooks = false,
+  topRightSlot,
 }: NotebookNoteListProps) => {
   // 纯 UI 态：缺省受控 props 时由组件内部自管展开集合，不在 effect 中镜像 props
   const [internalExpanded, setInternalExpanded] = useState<Set<string>>(
@@ -121,18 +125,19 @@ const NotebookNoteList = ({
 
   return (
     <div className="flex h-full flex-col overflow-hidden">
-      {/* 顶部：新建笔记本入口 */}
-      <div className="shrink-0 border-b border-border p-2">
+      {/* 顶部：左侧「新建笔记本」入口 + 可选右侧插槽 */}
+      <div className="flex shrink-0 items-center gap-2 border-b border-border p-2">
         <Button
           type="button"
           variant="ghost"
           size="sm"
-          className="w-full justify-start text-muted-foreground"
+          className="flex-1 justify-start text-muted-foreground"
           onClick={() => setCreateOpen(true)}
         >
           <Plus />
           新建笔记本
         </Button>
+        {topRightSlot && <div className="shrink-0">{topRightSlot}</div>}
       </div>
 
       {/* 列表区：加载中 / 空态 / 笔记本列表 */}
@@ -188,7 +193,7 @@ const NotebookNoteList = ({
                     size="icon-sm"
                     aria-label="新建笔记"
                     onClick={() => onAddNote?.(nb.id)}
-                    className="shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground"
+                    className="shrink-0 text-muted-foreground hover:bg-muted hover:text-foreground  opacity-0 transition-opacity focus-visible:opacity-100 group-hover:opacity-100"
                   >
                     <Plus />
                   </Button>

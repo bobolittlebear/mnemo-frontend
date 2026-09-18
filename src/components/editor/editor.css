@@ -164,3 +164,22 @@
   background: transparent;
   padding: 0;
 }
+
+/* ─── AI 工具写入高亮（设计 §7.3）───
+   浅色琥珀，与写模式 AI 气泡分色呼应。动画时长必须与扩展里的
+   HIGHLIGHT_TTL_MS（15s）一致：定时器负责摘除 mark，动画负责视觉淡出，
+   两者同步时用户看不到硬切。Mark 由 tiptap Mark 渲染成 span.ai-patch-highlight，
+   消散后 span 消失，样式自然失效。 */
+.tiptap-editor .ai-patch-highlight {
+  background-color: rgba(250, 204, 21, 0.35);
+  animation: ai-patch-fade 15s ease-out forwards;
+}
+
+@keyframes ai-patch-fade {
+  from {
+    background-color: rgba(250, 204, 21, 0.35);
+  }
+  to {
+    background-color: transparent;
+  }
+}

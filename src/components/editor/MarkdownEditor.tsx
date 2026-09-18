@@ -1,4 +1,4 @@
-import { useEditor, EditorContent } from "@tiptap/react";
+import { useEditor, EditorContent, type Editor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import CodeBlockLowlight from "@tiptap/extension-code-block-lowlight";
 import { createLowlight, common } from "lowlight";
@@ -9,7 +9,7 @@ import TableCell from "@tiptap/extension-table-cell";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
 import { Markdown, type MarkdownStorage } from "tiptap-markdown";
-import { type ReactNode } from "react";
+import { useEffect, type ReactNode } from "react";
 import "github-markdown-css/github-markdown-light.css";
 // 浅色主题 token 着色（.hljs-* 类），与 github-markdown-light.css 风格统一；
 // 后续若做暗色编辑器，仅需改为 "highlight.js/styles/github-dark.css"。
@@ -17,6 +17,7 @@ import "highlight.js/styles/github.css";
 import "./editor.css";
 import EditorToolbar from "./EditorToolbar";
 import { InlineCodeIme } from "./extensions/inline-code-ime";
+import { AiPatchHighlight } from "./extensions/ai-patch-highlight";
 
 // lowlight 单例放在组件外（模块级），避免 useEditor 每次渲染重建实例。
 // 代码块语言由 tiptap-markdown 解析 ```lang 时自动写入节点属性，lowlight 据此高亮。
@@ -62,6 +63,9 @@ const extensions = [
   // 排在最后：让 StarterKit code mark 的 inputRule（英文输入法）先跑完，
   // 本扩展再兜底处理 IME 下残留的裸反引号。详见该文件顶部注释。
   InlineCodeIme,
+  // AI 工具写入高亮（设计 §7.3）：由 editorExecutor 在同一次写入事务里打上，
+  // 用户 mousedown 或 15s 后自行消散
+  AiPatchHighlight,
 ];
 
 const editorProps = {
@@ -74,6 +78,14 @@ interface MarkdownEditorProps {
   value: string;
   onChange: (value: string) => void;
   renderSaveStatus: () => ReactNode; // 用于显示保存状态指示器的函数
+  /**
+   * 编辑器实例就绪 / 被替换后回调真实 Editor 实例；卸载时回调 null。
+   * 父级持有 editorRef，必须在每次回调时刷新——换笔记会以 key 重挂载本组件，
+   * 实例随之更换，否则 ref 会指向已销毁的编辑器。
+   */
+  onEditorReady?: (editor: Editor | null) => void;
+  /** 受控可编辑态：整 run 锁期间由父级置 false（默认 true） */
+  editable?: boolean;
 }
 
 /**
@@ -86,6 +98,8 @@ const MarkdownEditor = ({
   value,
   onChange,
   renderSaveStatus,
+  onEditorReady,
+  editable = true,
 }: MarkdownEditorProps) => {
   const editor = useEditor({
     // extensions / editorProps 为模块级稳定引用（见文件顶部），避免反复重建编辑器
@@ -105,6 +119,21 @@ const MarkdownEditor = ({
       onChange(md);
     },
   });
+
+  // 实例就绪 / 被替换后上交引用，卸载时交回 null；onEditorReady 由父级 useCallback 稳定，
+  // 否则本 effect 会随父级每次渲染重跑（虽只是重复赋值，也无意义）。
+  // cleanup 里的 null 是必须的：useEditor 卸载时会 destroy 实例，父级 ref 不清就
+  // 会一直指向死编辑器，AI 工具执行会往上面 dispatch
+  useEffect(() => {
+    if (!editor) return;
+    onEditorReady?.(editor);
+    return () => onEditorReady?.(null);
+  }, [editor, onEditorReady]);
+
+  // 受控可编辑态：整 run 锁的唯一落点（锁态由父级 state 驱动，不在 effect 内 setState 回读）
+  useEffect(() => {
+    editor?.setEditable(editable);
+  }, [editor, editable]);
 
   return (
     <div className="tiptap-editor w-full h-full border rounded-md overflow-hidden bg-background flex flex-col">

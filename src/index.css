@@ -103,3 +103,7 @@
   /* 引用块 */
   blockquote { @apply border-l-4 border-blue-400 pl-4 italic text-gray-600; }
 }
+
+.bg-gray {
+  background-color: #f5f6f7;
+}
