@@ -46,18 +46,31 @@ request.interceptors.response.use(
     return data;
   },
   (error) => {
-    // 处理 401 未授权：跳转登录页。
-    // 两个条件都必须满足，否则会死循环/误跳：
-    // 1. 不在登录页 —— 否则 /login 自身的接口 401 会无限刷新；
-    // 2. 不是登录请求 —— 密码错的 401 交给 Login 表单 catch 显示文案，不应跳页。
-    // 拦截器在 React 之外，用整页跳转最简且不与路由内部状态耦合。
-    if (error.response && error.response.status === 401) {
-      const isLoginRequest = error.config?.url?.includes("/auth/login");
-      if (window.location.pathname !== "/login" && !isLoginRequest) {
-        window.location.href = "/login";
-      }
+    // 后端错误信封 { success, data, message }：优先抽取后端 message 供业务层展示，
+    // 否则回退到 axios 默认错误信息。这样登录/注册的校验失败（400/500）能显示真实文案。
+    const respData = error.response?.data;
+    const msg =
+      respData &&
+      typeof respData === "object" &&
+      typeof respData.message === "string" &&
+      respData.message
+        ? respData.message
+        : (error.message ?? "请求失败");
+
+    // 401 未授权：跳转登录页。但 /auth/login、/auth/register 是公开端点，它们的失败
+    // （凭证错/校验错）走 400/500 而非 401；即便偶发 401 也不应把“登录/注册中”误跳登录页，故排除。
+    // 已在 /login 页时不重复跳转，避免循环。
+    const url = error.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/login") || url.includes("/register");
+    if (
+      error.response?.status === 401 &&
+      window.location.pathname !== "/login" &&
+      !isAuthEndpoint
+    ) {
+      window.location.href = "/login";
     }
-    return Promise.reject(error);
+
+    return Promise.reject(new Error(msg));
   },
 );
 

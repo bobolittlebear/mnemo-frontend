@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
 import request from "@/utils/request";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
@@ -74,6 +74,12 @@ const Login = () => {
               登录
             </Button>
           </div>
+          <p className="text-sm text-muted-foreground text-center">
+            还没有账号？{" "}
+            <Link to="/register" className="text-primary hover:underline">
+              去注册
+            </Link>
+          </p>
         </form>
       </div>
     </div>
