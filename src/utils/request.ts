@@ -14,9 +14,6 @@ request.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     // 【关键点】允许跨域请求携带 Cookie
     config.withCredentials = true;
-    config.withCredentials = true;
-    config.withCredentials = true;
-    config.withCredentials = true;
     return config;
   },
   (error) => {
@@ -49,11 +46,16 @@ request.interceptors.response.use(
     return data;
   },
   (error) => {
-    // 处理 401 未授权
+    // 处理 401 未授权：跳转登录页。
+    // 两个条件都必须满足，否则会死循环/误跳：
+    // 1. 不在登录页 —— 否则 /login 自身的接口 401 会无限刷新；
+    // 2. 不是登录请求 —— 密码错的 401 交给 Login 表单 catch 显示文案，不应跳页。
+    // 拦截器在 React 之外，用整页跳转最简且不与路由内部状态耦合。
     if (error.response && error.response.status === 401) {
-      console.warn("登录已过期或未登录，请重新登录");
-      // 这里可以触发跳转登录页的逻辑
-      // window.location.href = '/login';
+      const isLoginRequest = error.config?.url?.includes("/auth/login");
+      if (window.location.pathname !== "/login" && !isLoginRequest) {
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   },
