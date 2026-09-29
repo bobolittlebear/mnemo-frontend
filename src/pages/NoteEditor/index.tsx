@@ -11,6 +11,7 @@ import AIChatWindow from "./AiChatWindow";
 import { createEditorBridge } from "./editorBridge";
 import NotebookNoteList from "@/components/NotebookNoteList";
 import NoteEditorPane from "@/components/NoteEditorPane";
+import UserCenter from "@/components/UserCenter";
 import { Button } from "@/components/ui/button";
 import { getNumber, setNumber, getBool, setBool } from "@/utils/layoutStorage";
 import { getNotes, createNote, deleteNote, getNoteById } from "@/api/note";
@@ -346,7 +347,7 @@ const NoteEditor = () => {
       {/* 左侧：笔记列表侧边栏（收起态只剩一个展开按钮） */}
       <aside
         style={{ width: sidebarCollapsed ? COLLAPSED_WIDTH : sidebarWidth }}
-        className="relative shrink-0 border-r border-border bg-gray"
+        className="relative flex shrink-0 flex-col border-r border-border bg-gray"
       >
         {sidebarCollapsed && (
           <Button
@@ -362,7 +363,7 @@ const NoteEditor = () => {
           </Button>
         )}
         {/* 收起态只隐藏、不卸载：列表的滚动位置等内部状态得以保留，展开即原样恢复 */}
-        <div className={sidebarCollapsed ? "hidden" : "h-full"}>
+        <div className={sidebarCollapsed ? "hidden" : "min-h-0 flex-1"}>
           <NotebookNoteList
             notebooks={notebooks}
             notes={Object.values(notesByNotebook).flat()}
@@ -394,6 +395,7 @@ const NoteEditor = () => {
             }
           />
         </div>
+        <UserCenter collapsed={sidebarCollapsed} />
       </aside>
 
       {/* 左栏拖拽手柄：aside 左缘贴屏幕左，故新宽即指针 clientX */}

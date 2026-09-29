@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import request from "@/utils/request";
+import { me } from "@/api/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,24 @@ const Login = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // 已登录则无需停留在登录页：挂载即探测会话，命中（/auth/me 成功）直接进 /note。
+  // 未命中（/auth/me 返回 401，拦截器已排除跳转）则停留在登录页，什么都不做。
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await me();
+        if (!cancelled) navigate("/note", { replace: true });
+      } catch {
+        // 未登录：停留在登录页
+        // 其他错误如网络错误、服务端错误500等, 也不跳转
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

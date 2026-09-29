@@ -61,7 +61,12 @@ request.interceptors.response.use(
     // （凭证错/校验错）走 400/500 而非 401；即便偶发 401 也不应把“登录/注册中”误跳登录页，故排除。
     // 已在 /login 页时不重复跳转，避免循环。
     const url = error.config?.url ?? "";
-    const isAuthEndpoint = url.includes("/login") || url.includes("/register");
+    // 登录/注册/me 都是公开或探测用途：登录失败（401）交给对应表单 catch 显示文案，
+    // /me 探测到未登录（401）只是“停留在当前页”，都不应触发跳登录页。
+    const isAuthEndpoint =
+      url.includes("/login") ||
+      url.includes("/register") ||
+      url.includes("/me");
     if (
       error.response?.status === 401 &&
       window.location.pathname !== "/login" &&

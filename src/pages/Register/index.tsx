@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import request from "@/utils/request";
+import { me } from "@/api/auth";
 
 const Register = () => {
   const navigate = useNavigate();
@@ -10,6 +11,23 @@ const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // 已登录则无需停留在注册页：挂载即探测会话，命中（/auth/me 成功）直接进 /note。
+  // 未命中（/auth/me 返回 401，拦截器已排除跳转）则停留在注册页，什么都不做。
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        await me();
+        if (!cancelled) navigate("/note");
+      } catch {
+        // 未登录：停留在注册页
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
